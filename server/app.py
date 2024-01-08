@@ -8,10 +8,31 @@ from config import app, db, api
 from models import User, Recipe
 
 class Signup(Resource):
-    pass
+    def post(self):
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        image_url = data.get('image_url')
+        bio = data.get('bio')
 
+        if not username or not password:
+            return {'message': 'username and password required'}, 400
+
+        user = User(username=username, image_url=image_url, bio=bio)
+        user.password_hash = password
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+            return {'message': 'Unprocessable Entity'}, 422
+        return user.to_dict(), 201
 class CheckSession(Resource):
-    pass
+    def get(self):
+        if session.get('user_id'):
+            user = User.query.filter(User.id == session['user_id']).first()
+            return user.to_dict()
+        return {'message': 'Unauthorized'}, 401
 
 class Login(Resource):
     pass

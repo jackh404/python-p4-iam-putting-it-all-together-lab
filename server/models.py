@@ -15,7 +15,7 @@ class User(db.Model, SerializerMixin):
     
     recipes = db.relationship('Recipe', back_populates='user')
     
-    serialize_rules = ('-recipes.user',)
+    serialize_rules = ('-recipes.user','-_password_hash',)
     
     @hybrid_property
     def password_hash(self):
@@ -27,7 +27,7 @@ class User(db.Model, SerializerMixin):
         self._password_hash = password_hash.decode('utf-8')
         
     def authenticate(self, password):
-        return bcrypt.check_password_hash(self.password_hash, password.encode('utf-8'))
+        return bcrypt.check_password_hash(self._password_hash, password.encode('utf-8'))
     
 class Recipe(db.Model, SerializerMixin):
     __tablename__ = 'recipes'
@@ -47,3 +47,4 @@ class Recipe(db.Model, SerializerMixin):
         if not isinstance(instructions, str) or len(instructions) < 50:
             raise ValueError('Instructions must be a string at least 50 characters long.')
         return instructions
+    
